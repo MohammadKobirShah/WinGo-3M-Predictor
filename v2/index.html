@@ -1,176 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WinGo 1M Predictor</title>
-<style>
-  /* Reset & base */
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0; padding: 0; background: #f5f7fa; color: #333;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-  header {
-    background: #2f3e46;
-    color: #fff;
-    padding: 1rem 2rem;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
-  main {
-    flex: 1;
-    padding: 2rem;
-    max-width: 960px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  h1 {
-    margin: 0 0 1rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-  }
-  button#fetchBtn {
-    background: #4caf50;
-    color: white;
-    border: none;
-    padding: 0.8rem 1.6rem;
-    font-size: 1.1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
-  }
-  button#fetchBtn:hover,
-  button#fetchBtn:focus {
-    background: #388e3c;
-    outline: none;
-  }
-
-  .container {
-    margin-top: 2rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-  }
-  /* Full width on mobile */
-  @media(max-width: 720px) {
-    .container {
-      grid-template-columns: 1fr;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WinGo Predictor - Advanced</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #121212;
+      color: #eee;
+      margin: 0;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-  }
-
-  .card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-  }
-  .card h2 {
-    margin-top: 0;
-    font-weight: 600;
-    color: #222;
-    border-bottom: 2px solid #4caf50;
-    padding-bottom: 0.5rem;
-  }
-  ul.history-list {
-    list-style: none;
-    padding-left: 0;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-  ul.history-list li {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.4rem 0;
-    border-bottom: 1px solid #eee;
-    font-size: 1rem;
-  }
-  ul.history-list li:last-child {
-    border-bottom: none;
-  }
-  .badge {
-    padding: 0.25rem 0.6rem;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: white;
-    user-select: none;
-  }
-  .green {
-    background-color: #4caf50;
-  }
-  .red {
-    background-color: #f44336;
-  }
-  .violet {
-    background-color: #9c27b0;
-  }
-  .number {
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: #111;
-    margin-right: 1rem;
-  }
-
-  .prediction-section p {
-    font-size: 1.1rem;
-    margin: 0.6rem 0;
-  }
-  .color-box {
-    display: inline-block;
-    padding: 0.3rem 0.8rem;
-    border-radius: 12px;
-    color: #fff;
-    font-weight: 700;
-    text-transform: capitalize;
-  }
-  canvas {
-    margin-top: 1rem;
-    max-width: 100%;
-  }
-</style>
+    main {
+      max-width: 720px;
+      margin: auto;
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 1rem 2rem 2rem;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 900;
+      color: #f0a500;
+    }
+    label {
+      font-weight: 600;
+      margin-right: 10px;
+    }
+    select, button {
+      background: #333;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      color: #eee;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    select:focus, button:focus {
+      outline: none;
+      box-shadow: 0 0 8px #f0a500;
+    }
+    button:hover {
+      background: #f0a500;
+      color: #121212;
+    }
+    #results {
+      margin-top: 1rem;
+      background: #292929;
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    canvas {
+      margin-top: 1.5rem;
+      background: #222;
+      border-radius: 8px;
+      padding: 0.5rem;
+      box-shadow: inset 0 0 10px #000;
+      user-select: none;
+    }
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 1rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 <body>
-<header>
-  <h1>WinGo 3M Predictor</h1>
-</header>
-<main>
-  <button id="fetchBtn" aria-label="Fetch and predict results">🔄 Fetch & Predict</button>
-  
-  <div class="container">
-    <section class="card" id="historyCard" aria-live="polite" aria-label="Recent draw results">
-      <h2>🔢 Last 10 Results</h2>
-      <ul class="history-list" id="history"></ul>
-    </section>
+  <main>
+    <h1>WinGo Predictor - Advanced</h1>
 
-    <section class="card prediction-section" aria-live="polite" aria-label="Prediction details">
-      <h2>🔮 Next Prediction</h2>
-      <p><strong>Size:</strong> <span id="predSize"></span></p>
-      <p><strong>Color:</strong> <span id="predColor" class="color-box"></span></p>
-      <p><strong>Likely Numbers:</strong> <span id="predNumbers"></span></p>
-    </section>
-  </div>
+    <div style="margin-bottom: 1rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <label for="timeframeSelect">Select Timeframe:</label>
+      <select id="timeframeSelect" aria-label="Select timeframe for WinGo market">
+        <option value="30s">30 Seconds</option>
+        <option value="1m" selected>1 Minute</option>
+        <option value="5m">5 Minutes</option>
+      </select>
 
-  <section class="card">
-    <canvas id="bigSmallChart" role="img" aria-label="Big vs Small chart"></canvas>
-  </section>
-  <section class="card">
-    <canvas id="colorChart" role="img" aria-label="Color distribution chart"></canvas>
-  </section>
-  <section class="card">
-    <canvas id="numberChart" role="img" aria-label="Number frequency chart"></canvas>
-  </section>
-</main>
+      <button id="fetchBtn" aria-label="Fetch and predict results">🔄 Fetch & Predict</button>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="app.js"></script>
+    <div id="results" aria-live="polite" aria-atomic="true" role="region">Results will appear here.</div>
+
+    <canvas id="numberChart" width="600" height="300" aria-label="Number frequency chart"></canvas>
+    <canvas id="colorChart" width="400" height="300" aria-label="Color distribution pie chart"></canvas>
+    <canvas id="sizeChart" width="400" height="300" aria-label="Big vs Small bar chart"></canvas>
+  </main>
+
+  <footer>Powered by AI-enhanced prediction • &copy; 2025</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
