@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>WinGo 1M Prediction Tool</title>
+  <meta charset="UTF-8" />
+  <title>WinGo 3M Predictor with Charts</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
     h1 { color: #333; }
@@ -12,15 +12,21 @@
     .green { background: #b6fcb6; }
     .red { background: #fcb6b6; }
     .violet { background: #e0b6fc; }
+    canvas { max-width: 600px; margin-top: 30px; }
   </style>
 </head>
 <body>
-  <h1>WinGo 3M Predictor</h1>
+  <h1>WinGo 3M Predictor with Charts</h1>
   <button onclick="fetchAndPredict()">🔄 Fetch & Predict</button>
 
   <div class="result-box" id="history"></div>
   <div class="result-box prediction" id="prediction"></div>
 
+  <canvas id="bigSmallChart"></canvas>
+  <canvas id="colorChart"></canvas>
+  <canvas id="numberChart"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
