@@ -1,58 +1,86 @@
 const API_URL = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json";
 
+const fetchBtn = document.getElementById('fetchBtn');
+const historyEl = document.getElementById('history');
+const predSizeEl = document.getElementById('predSize');
+const predColorEl = document.getElementById('predColor');
+const predNumbersEl = document.getElementById('predNumbers');
+
 let bigSmallChart, colorChart, numberChart;
 
+fetchBtn.addEventListener('click', fetchAndPredict);
+
 async function fetchAndPredict() {
-  const res = await fetch(API_URL);
-  const data = await res.json();
-  const draws = data.data.list;
+  fetchBtn.disabled = true;
+  fetchBtn.textContent = '⏳ Loading...';
 
-  let big = 0, small = 0;
-  const colorCount = { green: 0, red: 0, violet: 0 };
-  const numbers = [];
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    const draws = data.data.list;
 
-  // Analyze last 10 draws
-  const recentDraws = draws.slice(0, 10);
-  recentDraws.forEach(draw => {
-    const num = parseInt(draw.number);
-    numbers.push(num);
-    if (num >= 5) big++; else small++;
+    let big = 0, small = 0;
+    const colorCount = { green: 0, red: 0, violet: 0 };
+    const numbers = [];
 
-    draw.color.split(',').forEach(c => {
-      const color = c.trim();
-      if (colorCount[color] !== undefined) colorCount[color]++;
+    // Analyze last 10 draws
+    const recentDraws = draws.slice(0, 10);
+    recentDraws.forEach(draw => {
+      const num = parseInt(draw.number);
+      numbers.push(num);
+      if (num >= 5) big++; else small++;
+
+      draw.color.split(',').forEach(c => {
+        const color = c.trim();
+        if (colorCount[color] !== undefined) colorCount[color]++;
+      });
     });
-  });
 
-  // Determine trend
-  const prediction = {
-    size: big >= small ? "Big" : "Small",
-    color: Object.keys(colorCount).reduce((a, b) => colorCount[a] > colorCount[b] ? a : b),
-    likelyNumbers: numbers.sort((a,b) =>
-      numbers.filter(v => v===a).length - numbers.filter(v => v===b).length
-    ).reverse().slice(0, 3)
-  };
+    // Determine trend
+    const prediction = {
+      size: big >= small ? "Big" : "Small",
+      color: Object.keys(colorCount).reduce((a, b) => colorCount[a] > colorCount[b] ? a : b),
+      likelyNumbers: numbers.sort((a,b) =>
+        numbers.filter(v => v===a).length - numbers.filter(v => v===b).length
+      ).reverse().slice(0, 3)
+    };
 
-  // Display history
-  document.getElementById("history").innerHTML = `
-    <h2>🔢 Last 10 Results</h2>
-    <ul>${recentDraws.map(d =>
-      `<li>#${d.issueNumber} — <strong>${d.number}</strong> (${d.color})</li>`).join('')
-    }</ul>
-  `;
+    // Render history list
+    historyEl.innerHTML = '';
+    recentDraws.forEach(d => {
+      const num = parseInt(d.number);
+      const sizeClass = num >= 5 ? 'big' : 'small';
 
-  // Display prediction
-  document.getElementById("prediction").innerHTML = `
-    <h2>🔮 Next Prediction</h2>
-    <p><strong>Size:</strong> ${prediction.size}</p>
-    <p><strong>Color:</strong> <span class="color-box ${prediction.color}">${prediction.color}</span></p>
-    <p><strong>Likely Numbers:</strong> ${prediction.likelyNumbers.join(', ')}</p>
-  `;
+      const colorBadges = d.color.split(',').map(c => {
+        c = c.trim();
+        return `<span class="badge ${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</span>`;
+      }).join(' ');
 
-  // Draw Charts
-  drawBigSmallChart(big, small);
-  drawColorChart(colorCount);
-  drawNumberChart(numbers);
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span class="number">${num}</span> ${colorBadges}
+        <span>Issue: #${d.issueNumber}</span>
+      `;
+      historyEl.appendChild(li);
+    });
+
+    // Render prediction
+    predSizeEl.textContent = prediction.size;
+    predColorEl.textContent = prediction.color;
+    predColorEl.className = `color-box ${prediction.color}`;
+    predNumbersEl.textContent = prediction.likelyNumbers.join(', ');
+
+    // Draw charts
+    drawBigSmallChart(big, small);
+    drawColorChart(colorCount);
+    drawNumberChart(numbers);
+
+  } catch(err) {
+    alert('Failed to fetch or process data: ' + err.message);
+  } finally {
+    fetchBtn.disabled = false;
+    fetchBtn.textContent = '🔄 Fetch & Predict';
+  }
 }
 
 function drawBigSmallChart(big, small) {
