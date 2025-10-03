@@ -1,106 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WinGo Predictor - Advanced</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #121212;
-      color: #eee;
-      margin: 0;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-    main {
-      max-width: 720px;
-      margin: auto;
-      background: #1e1e1e;
-      border-radius: 12px;
-      padding: 1rem 2rem 2rem;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.8);
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 1rem;
-      font-weight: 900;
-      color: #f0a500;
-    }
-    label {
-      font-weight: 600;
-      margin-right: 10px;
-    }
-    select, button {
-      background: #333;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      color: #eee;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    select:focus, button:focus {
-      outline: none;
-      box-shadow: 0 0 8px #f0a500;
-    }
-    button:hover {
-      background: #f0a500;
-      color: #121212;
-    }
-    #results {
-      margin-top: 1rem;
-      background: #292929;
-      border-radius: 8px;
-      padding: 1rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-    canvas {
-      margin-top: 1.5rem;
-      background: #222;
-      border-radius: 8px;
-      padding: 0.5rem;
-      box-shadow: inset 0 0 10px #000;
-      user-select: none;
-    }
-    footer {
-      margin-top: auto;
-      text-align: center;
-      padding: 1rem;
-      color: #666;
-      font-size: 0.9rem;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WinGo 1 Min Predictor</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fff8e1;
+    margin: 0; padding: 0;
+  }
+  .header {
+    background: #ffd54f;
+    padding: 10px 20px;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #333;
+  }
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 8px #d9b600;
+    padding: 15px;
+  }
+  .time-frames {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .time-frame-btn {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 6px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    background: #fff;
+    box-shadow: 0 0 6px #d9b600;
+    color: #555;
+    transition: background 0.3s;
+  }
+  .time-frame-btn.active, .time-frame-btn:hover {
+    background: #fbc02d;
+    color: #222;
+  }
+  .prediction {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 10px 0 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #856404;
+  }
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .history-table th, .history-table td {
+    padding: 8px;
+    border-bottom: 1px solid #f0e68c;
+    text-align: center;
+  }
+  .history-table th {
+    background: #fff8dc;
+    color: #7a5901;
+  }
+  .color-dot {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 2px;
+  }
+  .red { background: #f44336; }
+  .green { background: #4caf50; }
+  .violet { background: #9c27b0; }
+  .big { background: #ffca28; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
+  .small { background: #64b5f6; padding: 3px 10px; border-radius: 20px; font-weight: 700; color: white; }
+</style>
 </head>
 <body>
-  <main>
-    <h1>WinGo Predictor - Advanced</h1>
 
-    <div style="margin-bottom: 1rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
-      <label for="timeframeSelect">Select Timeframe:</label>
-      <select id="timeframeSelect" aria-label="Select timeframe for WinGo market">
-        <option value="30s">30 Seconds</option>
-        <option value="1m" selected>1 Minute</option>
-        <option value="5m">5 Minutes</option>
-      </select>
+<div class="header">WinGo 1 Min Predictor</div>
+<div class="container">
+  <div class="time-frames">
+    <button class="time-frame-btn active" data-tf="WinGo_30S">30 Sec</button>
+    <button class="time-frame-btn" data-tf="WinGo_1M">1 Min</button>
+    <button class="time-frame-btn" data-tf="WinGo_5M">5 Min</button>
+  </div>
 
-      <button id="fetchBtn" aria-label="Fetch and predict results">🔄 Fetch & Predict</button>
-    </div>
+  <div class="prediction" id="predictionText">Loading predictions...</div>
 
-    <div id="results" aria-live="polite" aria-atomic="true" role="region">Results will appear here.</div>
+  <table class="history-table" aria-label="Game history table">
+    <thead>
+      <tr>
+        <th>Period</th>
+        <th>Number</th>
+        <th>Big/Small</th>
+        <th>Color</th>
+      </tr>
+    </thead>
+    <tbody id="historyBody">
+      <tr><td colspan="4">Loading history...</td></tr>
+    </tbody>
+  </table>
+</div>
 
-    <canvas id="numberChart" width="600" height="300" aria-label="Number frequency chart"></canvas>
-    <canvas id="colorChart" width="400" height="300" aria-label="Color distribution pie chart"></canvas>
-    <canvas id="sizeChart" width="400" height="300" aria-label="Big vs Small bar chart"></canvas>
-  </main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Base URL for API
+const baseURL = 'https://draw.ar-lottery01.com/WinGo/';
 
-  <footer>Powered by AI-enhanced prediction • &copy; 2025</footer>
+// Elements
+const predictionText = document.getElementById('predictionText');
+const historyBody = document.getElementById('historyBody');
+const tfButtons = document.querySelectorAll('.time-frame-btn');
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="app.js"></script>
+let currentTF = 'WinGo_30S';
+
+tfButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tfButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTF = btn.getAttribute('data-tf');
+    loadDataAndPredict();
+  });
+});
+
+// Helper for weighted frequency
+function weightedFreq(data, decay=0.85){
+  const freq = Array(10).fill(0);
+  let w = 1;
+  for(let d of data){
+    freq[parseInt(d.number)] += w;
+    w *= decay;
+  }
+  return freq;
+}
+
+// Predict next number size and color using weighted stats
+function predict(draws){
+  const freq = weightedFreq(draws);
+
+  // Size
+  let bigSum=0, smallSum=0, w=1;
+  for(let d of draws){
+    const n = parseInt(d.number);
+    if(n >= 5) bigSum += w; else smallSum += w;
+    w *= 0.85;
+  }
+  const size = bigSum > smallSum ? 'Big' : 'Small';
+
+  // Color
+  const colorCount = { red: 0, green: 0, violet: 0 };
+  w = 1;
+  for(let d of draws){
+    d.color.split(',').forEach(c=>{
+      if(colorCount[c] !== undefined) colorCount[c] += w;
+    });
+    w *= 0.85;
+  }
+  const color = Object.entries(colorCount).sort((a,b)=>b[1]-a[1])[0][0];
+
+  // Top 3 likely numbers
+  const topNums = freq.map((v,i) => ({num:i,freq:v}))
+      .sort((a,b)=>b.freq-a.freq)
+      .slice(0,3)
+      .map(x=>x.num);
+
+  return { size, color, topNums };
+}
+
+// Color dot html
+function colorDot(color){
+  return `<span class="color-dot ${color}"></span>`;
+}
+
+async function loadDataAndPredict(){
+  predictionText.textContent = 'Loading predictions...';
+  historyBody.innerHTML = `<tr><td colspan="4">Loading history...</td></tr>`;
+
+  try{
+    const url = `${baseURL}${currentTF}/GetHistoryIssuePage.json`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Network response was not ok');
+    const json = await res.json();
+
+    if(!json.data || !json.data.list) throw new Error('Invalid data format');
+
+    const draws = json.data.list.slice(0, 50);
+
+    // Show history
+    historyBody.innerHTML = draws.map(d=>{
+      const bigsmall = parseInt(d.number) >= 5 ? 'Big' : 'Small';
+      const colorSpans = d.color.split(',').map(c=>colorDot(c)).join('');
+      return `<tr>
+        <td>${d.issueNumber}</td>
+        <td style="color:${d.color.includes('red')?'#f44336':d.color.includes('green')?'#4caf50':'#9c27b0'}">${d.number}</td>
+        <td><span class="${bigsmall.toLowerCase()}">${bigsmall}</span></td>
+        <td>${colorSpans}</td>
+      </tr>`;
+    }).join('');
+
+    // Predict next
+    const prediction = predict(draws);
+
+    predictionText.innerHTML = `
+      Predicted Size: <strong>${prediction.size}</strong><br />
+      Predicted Color: <strong>${prediction.color.charAt(0).toUpperCase() + prediction.color.slice(1)}</strong><br />
+      Likely Numbers: <strong>${prediction.topNums.join(', ')}</strong>
+    `;
+
+  }catch(err){
+    predictionText.textContent = 'Error loading data: ' + err.message;
+    historyBody.innerHTML = `<tr><td colspan="4">Error loading history</td></tr>`;
+  }
+}
+
+// Initial load
+loadDataAndPredict();
+
+</script>
 </body>
 </html>
