@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WinGo 1M Prediction Tool</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+    h1 { color: #333; }
+    .result-box { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .prediction { font-size: 1.5em; margin-top: 15px; }
+    .color-box { display: inline-block; margin: 5px; padding: 5px 10px; border-radius: 5px; }
+    .green { background: #b6fcb6; }
+    .red { background: #fcb6b6; }
+    .violet { background: #e0b6fc; }
+  </style>
+</head>
+<body>
+  <h1>WinGo 3M Predictor</h1>
+  <button onclick="fetchAndPredict()">🔄 Fetch & Predict</button>
+
+  <div class="result-box" id="history"></div>
+  <div class="result-box prediction" id="prediction"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
