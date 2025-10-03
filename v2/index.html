@@ -1,466 +1,422 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WinGo 1 Min Predictor - Premium UI</title>
-  <style>
-    /* Reset */
-    * {
-      box-sizing: border-box;
-      margin: 0; padding: 0;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WinGo Market Prediction</title>
+<style>
+  /* Reset & basics */
+  body, html {
+    margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #eee;
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  h1 {
+    margin: 1rem auto 0.5rem;
+    font-weight: 700;
+  }
 
-    body, html {
-      height: 100%;
-      font-family: 'Poppins', sans-serif;
-      overflow-x: hidden;
-      background: linear-gradient(135deg, #171717 0%, #0f0f0f 100%);
-      color: #eee;
-      position: relative;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
+  /* Container */
+  .container {
+    max-width: 480px;
+    margin: auto;
+    background: #222;
+    border-radius: 12px;
+    padding: 1rem 1.5rem 2rem;
+    box-shadow: 0 0 20px rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
 
-    /* Spider Web Canvas full background */
-    #spider-web-bg {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.15;
-    }
+  /* Background animated spiderweb effect (canvas) */
+  canvas#bgCanvas {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+  }
 
-    /* Container */
+  /* Timeframe buttons */
+  .time-frames {
+    display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem;
+  }
+  .time-frame-btn {
+    flex: 1;
+    background: #333;
+    border: none;
+    padding: 0.5rem 0;
+    border-radius: 8px;
+    color: #eee;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  .time-frame-btn:hover:not(.active) {
+    background: #444;
+  }
+  .time-frame-btn.active {
+    background: #0a74da;
+    box-shadow: 0 0 8px #0a74da;
+  }
+
+  /* Timer */
+  .timer {
+    text-align: center;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  .timer span {
+    font-weight: 700;
+    background: #0a74da;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    letter-spacing: 0.1rem;
+  }
+
+  /* Game history table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+  }
+  thead th {
+    background: #0a74da;
+    padding: 0.6rem 0.4rem;
+    font-weight: 700;
+  }
+  tbody td {
+    text-align: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #333;
+    font-size: 0.9rem;
+  }
+  tbody tr:nth-child(even) {
+    background: #1a1a1a;
+  }
+  .color-dot {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin: 0 2px;
+    vertical-align: middle;
+  }
+  .color-red { background: #e74c3c; }
+  .color-green { background: #27ae60; }
+  .color-violet { background: #9b59b6; }
+
+  /* Prediction output */
+  .prediction {
+    background: #0a74da;
+    border-radius: 8px;
+    padding: 1rem;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 0 12px #0a74da;
+  }
+  .prediction ul {
+    padding-left: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 520px) {
     .container {
-      position: relative;
-      max-width: 480px;
-      margin: 2rem auto 3rem;
-      background: rgba(255 255 255 / 0.12);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      box-shadow: 0 0 25px rgb(255 193 7 / 0.7);
-      border: 1px solid rgba(255 193 7 / 0.4);
-      padding: 20px 25px 30px;
-      z-index: 10;
+      margin: 0 10px;
+      padding: 1rem 1rem 2rem;
     }
-
-    /* Header */
-    .header {
-      font-weight: 800;
-      font-size: 1.8rem;
-      color: #ffd740;
-      text-align: center;
-      margin-bottom: 1rem;
-      text-shadow: 0 0 8px #ffd740aa;
-      letter-spacing: 2px;
-    }
-
-    /* Timeframe buttons */
-    .time-frames {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      justify-content: center;
-    }
-    .time-frame-btn {
-      flex: 1;
-      padding: 10px 0;
-      font-weight: 700;
-      font-size: 1rem;
-      border-radius: 30px;
-      border: 2px solid #ffd740;
-      color: #ffd740;
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 6px #ffd74044;
-      user-select: none;
-    }
-    .time-frame-btn.active,
-    .time-frame-btn:hover {
-      background: #ffd740;
-      color: #222;
-      box-shadow: 0 0 20px #ffd740cc;
-    }
-
-    /* Prediction area */
-    .prediction {
-      background: rgba(255 255 255 / 0.15);
-      border-radius: 12px;
-      padding: 14px 20px;
-      margin-bottom: 25px;
-      box-shadow: 0 0 12px #ffd740aa;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: #fff;
-      text-align: center;
-      letter-spacing: 0.05em;
-      user-select: none;
-    }
-
-    /* Table styles */
-    .history-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 8px;
-      font-size: 0.95rem;
-      color: #f0e68c;
-      font-weight: 600;
-      user-select: none;
-    }
-    .history-table thead tr {
-      color: #ffd740;
-      letter-spacing: 0.08em;
-      font-size: 0.95rem;
-    }
-    .history-table th,
-    .history-table td {
-      padding: 12px 10px;
-      text-align: center;
-      border-radius: 14px;
-      vertical-align: middle;
-      background: rgba(255 255 255 / 0.1);
-      box-shadow: inset 0 0 8px rgb(255 193 7 / 0.3);
-    }
-    .history-table tbody tr {
-      transition: background 0.3s ease;
-    }
-    .history-table tbody tr:hover {
-      background: rgba(255 255 255 / 0.15);
-      box-shadow: 0 0 10px #ffd740aa;
-    }
-
-    /* Big/Small badges */
-    .big, .small {
-      font-weight: 800;
-      padding: 6px 14px;
-      border-radius: 20px;
-      color: #222;
-      user-select: none;
-      box-shadow: 0 0 5px rgb(255 193 7 / 0.8);
-      text-transform: uppercase;
-    }
-    .big {
-      background: #ffd740;
-    }
-    .small {
-      background: #64b5f6;
-      color: #e1f5fe;
-      box-shadow: 0 0 7px #64b5f6cc;
-    }
-
-    /* Colored number */
-    .num-red {
-      color: #f44336;
-      font-weight: 700;
-      text-shadow: 0 0 6px #f44336cc;
-    }
-    .num-green {
-      color: #4caf50;
-      font-weight: 700;
-      text-shadow: 0 0 6px #4caf50cc;
-    }
-    .num-violet {
-      color: #9c27b0;
-      font-weight: 700;
-      text-shadow: 0 0 6px #9c27b0cc;
-    }
-
-    /* Color dot circles */
-    .color-dot {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      margin: 0 3px;
-      box-shadow: 0 0 6px rgba(255 255 255, 0.4);
-    }
-    .red {
-      background: #f44336;
-      box-shadow: 0 0 10px #f44336bb;
-    }
-    .green {
-      background: #4caf50;
-      box-shadow: 0 0 10px #4caf50bb;
-    }
-    .violet {
-      background: #9c27b0;
-      box-shadow: 0 0 10px #9c27b0bb;
-    }
-
-    /* Responsive */
-    @media (max-width: 520px) {
-      .container {
-        margin: 1rem 10px 2rem;
-        padding: 15px 15px 20px;
-      }
-      .time-frame-btn {
-        font-size: 0.85rem;
-        padding: 8px 0;
-      }
-      .header {
-        font-size: 1.5rem;
-      }
-      .prediction {
-        font-size: 1rem;
-        padding: 12px 15px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
-  <!-- Spider web canvas -->
-  <canvas id="spider-web-bg"></canvas>
+<canvas id="bgCanvas"></canvas>
+<div class="container" role="main" aria-label="WinGo Market Prediction Tool">
+  <h1>WinGo Market Prediction</h1>
 
-  <div class="container" role="main" aria-label="WinGo 1 Min Prediction Tool">
-    <div class="header">WinGo Predictor - Premium UI</div>
+  <nav class="time-frames" role="tablist" aria-label="Select timeframe">
+    <button class="time-frame-btn active" data-tf="WinGo_30S" role="tab" aria-selected="true" tabindex="0">30 Sec</button>
+    <button class="time-frame-btn" data-tf="WinGo_1M" role="tab" aria-selected="false" tabindex="-1">1 Min</button>
+    <button class="time-frame-btn" data-tf="WinGo_3M" role="tab" aria-selected="false" tabindex="-1">3 Min</button>
+    <button class="time-frame-btn" data-tf="WinGo_5M" role="tab" aria-selected="false" tabindex="-1">5 Min</button>
+  </nav>
 
-    <div class="time-frames" role="tablist" aria-label="Select timeframe">
-      <button class="time-frame-btn active" data-tf="WinGo_30S" role="tab" aria-selected="true" tabindex="0">30 Sec</button>
-      <button class="time-frame-btn" data-tf="WinGo_1M" role="tab" aria-selected="false" tabindex="-1">1 Min</button>
-      <button class="time-frame-btn" data-tf="WinGo_5M" role="tab" aria-selected="false" tabindex="-1">5 Min</button>
-    </div>
-
-    <div class="prediction" id="predictionText" aria-live="polite" aria-atomic="true">
-      Loading predictions...
-    </div>
-
-    <table class="history-table" aria-label="Game history table" role="grid">
-      <thead>
-        <tr role="row">
-          <th role="columnheader">Period</th>
-          <th role="columnheader">Number</th>
-          <th role="columnheader">Big/Small</th>
-          <th role="columnheader">Color</th>
-        </tr>
-      </thead>
-      <tbody id="historyBody" role="rowgroup">
-        <tr role="row"><td colspan="4" role="gridcell">Loading history...</td></tr>
-      </tbody>
-    </table>
+  <div class="timer" aria-live="polite" aria-atomic="true">
+    Time Remaining: <span id="time-remaining">--:--</span>
   </div>
 
-  <script>
-    // Spider web animation code
-    (() => {
-      const canvas = document.getElementById('spider-web-bg');
-      const ctx = canvas.getContext('2d');
-      let width, height;
+  <table aria-label="Game history table" role="grid">
+    <thead>
+      <tr>
+        <th scope="col">Period</th>
+        <th scope="col">Number</th>
+        <th scope="col">Big/Small</th>
+        <th scope="col">Color</th>
+      </tr>
+    </thead>
+    <tbody id="game-history">
+      <tr><td colspan="4" style="color:#777;">Loading...</td></tr>
+    </tbody>
+  </table>
 
-      // Resize canvas
-      function resize() {
-        width = window.innerWidth;
-        height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-      }
-      resize();
-      window.addEventListener('resize', resize);
+  <section class="prediction" aria-live="polite" aria-atomic="true" id="prediction-output">
+    Loading prediction...
+  </section>
+</div>
 
-      // Points for web
-      const points = [];
-      const center = {x: width/2, y: height/2};
-      const rings = 12;
-      const segments = 18;
-      const radius = Math.min(width, height) / 3;
+<script>
+(() => {
+  const API_BASE = "https://draw.ar-lottery01.com/WinGo";
+  const defaultTf = "WinGo_30S";
+  let currentTf = defaultTf;
+  let timerInterval = null;
 
-      // Create points in rings
-      for(let r=1; r <= rings; r++) {
-        for(let s=0; s < segments; s++) {
-          const angle = (2 * Math.PI / segments) * s;
-          const dist = (radius / rings) * r;
-          points.push({
-            x: center.x + dist * Math.cos(angle),
-            y: center.y + dist * Math.sin(angle),
-            baseX: center.x + dist * Math.cos(angle),
-            baseY: center.y + dist * Math.sin(angle),
-            angle,
-            radius: dist,
-            phase: Math.random() * 2 * Math.PI
-          });
-        }
-      }
+  const buttons = document.querySelectorAll(".time-frame-btn");
+  const historyTable = document.getElementById("game-history");
+  const predictionOutput = document.getElementById("prediction-output");
+  const timeRemainingEl = document.getElementById("time-remaining");
 
-      // Animate function
-      function animate(t=0) {
-        ctx.clearRect(0, 0, width, height);
-
-        ctx.strokeStyle = '#ffd740cc';
-        ctx.lineWidth = 0.9;
-        ctx.shadowColor = 'rgba(255, 215, 64, 0.6)';
-        ctx.shadowBlur = 5;
-
-        // Animate points (small oscillation)
-        points.forEach(p => {
-          const offset = Math.sin(t / 1000 + p.phase) * 2;
-          p.x = p.baseX + offset * Math.cos(p.angle + Math.PI/2);
-          p.y = p.baseY + offset * Math.sin(p.angle + Math.PI/2);
-        });
-
-        // Draw rings (connect points in rings)
-        for(let r=0; r < rings; r++) {
-          ctx.beginPath();
-          for(let s=0; s <= segments; s++) {
-            const p = points[r * segments + (s % segments)];
-            if(s === 0) ctx.moveTo(p.x, p.y);
-            else ctx.lineTo(p.x, p.y);
-          }
-          ctx.stroke();
-        }
-
-        // Draw spokes (connect center to points)
-        for(let s=0; s < segments; s++) {
-          ctx.beginPath();
-          ctx.moveTo(center.x, center.y);
-          for(let r=0; r < rings; r++) {
-            const p = points[r * segments + s];
-            ctx.lineTo(p.x, p.y);
-          }
-          ctx.stroke();
-        }
-
-        // Draw center glow
-        const grad = ctx.createRadialGradient(center.x, center.y, 2, center.x, center.y, 20);
-        grad.addColorStop(0, 'rgba(255, 215, 64, 0.6)');
-        grad.addColorStop(1, 'rgba(255, 215, 64, 0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(center.x, center.y, 20, 0, 2 * Math.PI);
-        ctx.fill();
-
-        requestAnimationFrame(animate);
-      }
-      animate();
-    })();
-
-    // Main app code
-    (function() {
-      const baseURL = 'https://draw.ar-lottery01.com/WinGo/';
-      const predictionText = document.getElementById('predictionText');
-      const historyBody = document.getElementById('historyBody');
-      const tfButtons = document.querySelectorAll('.time-frame-btn');
-
-      let currentTF = 'WinGo_30S';
-
-      // Setup ARIA roles for tabs & keyboard accessibility
-      tfButtons.forEach((btn, idx) => {
-        btn.addEventListener('click', () => {
-          tfButtons.forEach(b => {
-            b.classList.remove('active');
-            b.setAttribute('aria-selected', 'false');
-            b.setAttribute('tabindex', '-1');
-          });
-          btn.classList.add('active');
-          btn.setAttribute('aria-selected', 'true');
-          btn.setAttribute('tabindex', '0');
-          btn.focus();
-          currentTF = btn.getAttribute('data-tf');
-          loadDataAndPredict();
-        });
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("active")) return;
+      // Update active button styles & ARIA
+      buttons.forEach(b => {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+        b.tabIndex = -1;
       });
+      btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
+      btn.tabIndex = 0;
 
-      // Weighted frequency function for prediction
-      function weightedFreq(data, decay=0.85) {
-        const freq = Array(10).fill(0);
-        let w = 1;
-        for(let d of data) {
-          freq[parseInt(d.number)] += w;
-          w *= decay;
-        }
-        return freq;
-      }
-
-      // Prediction function
-      function predict(draws) {
-        const freq = weightedFreq(draws);
-
-        // Size prediction
-        let bigSum=0, smallSum=0, w=1;
-        for(let d of draws){
-          const n = parseInt(d.number);
-          if(n >= 5) bigSum += w; else smallSum += w;
-          w *= 0.85;
-        }
-        const size = bigSum > smallSum ? 'Big' : 'Small';
-
-        // Color prediction
-        const colorCount = { red: 0, green: 0, violet: 0 };
-        w = 1;
-        for(let d of draws) {
-          d.color.split(',').forEach(c => {
-            if(colorCount[c] !== undefined) colorCount[c] += w;
-          });
-          w *= 0.85;
-        }
-        const color = Object.entries(colorCount).sort((a,b)=>b[1]-a[1])[0][0];
-
-        // Top 3 numbers likely
-        const topNums = freq.map((v,i) => ({num:i,freq:v}))
-          .sort((a,b) => b.freq - a.freq)
-          .slice(0,3)
-          .map(x => x.num);
-
-        return { size, color, topNums };
-      }
-
-      // Color dot html helper
-      function colorDot(color) {
-        return `<span class="color-dot ${color}"></span>`;
-      }
-
-      // Render data and prediction
-      async function loadDataAndPredict() {
-        predictionText.textContent = 'Loading predictions...';
-        historyBody.innerHTML = `<tr><td colspan="4">Loading history...</td></tr>`;
-
-        try {
-          const url = `${baseURL}${currentTF}/GetHistoryIssuePage.json`;
-          const res = await fetch(url);
-          if(!res.ok) throw new Error('Network response was not ok');
-          const json = await res.json();
-
-          if(!json.data || !json.data.list) throw new Error('Invalid data format');
-
-          const draws = json.data.list.slice(0, 50);
-
-          // Populate history table
-          historyBody.innerHTML = draws.map(d => {
-            const bigsmall = parseInt(d.number) >= 5 ? 'Big' : 'Small';
-            let numClass = '';
-            if(d.color.includes('red')) numClass = 'num-red';
-            else if(d.color.includes('green')) numClass = 'num-green';
-            else if(d.color.includes('violet')) numClass = 'num-violet';
-
-            const colorSpans = d.color.split(',').map(c => colorDot(c)).join('');
-            return `<tr>
-              <td>${d.issueNumber}</td>
-              <td class="${numClass}">${d.number}</td>
-              <td><span class="${bigsmall.toLowerCase()}">${bigsmall}</span></td>
-              <td>${colorSpans}</td>
-            </tr>`;
-          }).join('');
-
-          // Get prediction
-          const prediction = predict(draws);
-
-          predictionText.innerHTML = `
-            Predicted Size: <strong>${prediction.size}</strong><br />
-            Predicted Color: <strong>${prediction.color.charAt(0).toUpperCase() + prediction.color.slice(1)}</strong><br />
-            Likely Numbers: <strong>${prediction.topNums.join(', ')}</strong>
-          `;
-
-        } catch(err) {
-          predictionText.textContent = 'Error loading data: ' + err.message;
-          historyBody.innerHTML = `<tr><td colspan="4">Error loading history</td></tr>`;
-        }
-      }
-
-      // Initial load
+      currentTf = btn.dataset.tf;
+      resetTimer();
       loadDataAndPredict();
-    })();
-  </script>
+    });
+  });
+
+  // Fetch and render data + prediction
+  async function loadDataAndPredict() {
+    predictionOutput.textContent = "Loading prediction...";
+    historyTable.innerHTML = '<tr><td colspan="4" style="color:#777;">Loading...</td></tr>';
+
+    try {
+      // Fetch history
+      const url = `${API_BASE}/${currentTf}/GetHistoryIssuePage.json?pageNo=1`;
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.code !== 0) throw new Error("API returned error");
+
+      const draws = json.data.list;
+
+      // Render table
+      historyTable.innerHTML = draws.map(d => {
+        // Color dots
+        const colors = d.color.split(",");
+        const colorDots = colors.map(c => `<span class="color-dot color-${c}"></span>`).join("");
+
+        return `<tr>
+          <td>${d.issueNumber}</td>
+          <td style="color:${colors.includes("red") ? "#e74c3c" : colors.includes("green") ? "#27ae60" : "#9b59b6"}; font-weight:700;">${d.number}</td>
+          <td>${d.number >= 5 ? "Big" : "Small"}</td>
+          <td>${colorDots}</td>
+        </tr>`;
+      }).join("");
+
+      // Update countdown from server timestamp — fallback to 60 sec countdown for demo
+      startTimer(60);
+
+      // Prediction
+      const prediction = predict(draws);
+      predictionOutput.innerHTML = `
+        Predicted Size: <strong>${prediction.size}</strong> (Confidence: ${prediction.sizeConfidence})<br />
+        Predicted Color: <strong>${prediction.color.charAt(0).toUpperCase() + prediction.color.slice(1)}</strong> (Confidence: ${prediction.colorConfidence})<br />
+        Weighted Avg Number: <strong>${prediction.weightedAvg}</strong><br />
+        Likely Numbers:
+        <ul>
+          ${prediction.topNums.map(n => `<li>#${n.number} (${(n.probability * 100).toFixed(1)}%)</li>`).join('')}
+        </ul>
+      `;
+
+    } catch (e) {
+      console.error(e);
+      historyTable.innerHTML = '<tr><td colspan="4" style="color:#e74c3c;">Failed to load data.</td></tr>';
+      predictionOutput.textContent = "Error loading prediction.";
+    }
+  }
+
+  // Prediction engine
+  function predict(draws) {
+    const freq = Array(10).fill(0);
+    let w = 1;
+    for (let d of draws) {
+      freq[parseInt(d.number)] += w;
+      w *= 0.75;
+    }
+
+    let totalWeight = 0;
+    let weightedSum = 0;
+    w = 1;
+    for (let d of draws) {
+      const num = parseInt(d.number);
+      weightedSum += num * w;
+      totalWeight += w;
+      w *= 0.75;
+    }
+    const weightedAvg = weightedSum / totalWeight;
+
+    let bigScore = 0;
+    let smallScore = 0;
+    w = 1;
+    for (let d of draws) {
+      const num = parseInt(d.number);
+      if (num >= 5) bigScore += w;
+      else smallScore += w;
+      w *= 0.75;
+    }
+    const size = bigScore > smallScore ? 'Big' : 'Small';
+    const sizeConfidence = Math.abs(bigScore - smallScore) / (bigScore + smallScore);
+
+    const colorCount = { red: 0, green: 0, violet: 0 };
+    w = 1;
+    for (let d of draws) {
+      d.color.split(',').forEach(c => {
+        if (colorCount[c] !== undefined) colorCount[c] += w;
+      });
+      w *= 0.75;
+    }
+    const sortedColors = Object.entries(colorCount).sort((a,b) => b[1] - a[1]);
+    const color = sortedColors[0][0];
+    const colorConfidence = sortedColors[0][1] / (sortedColors[0][1] + sortedColors[1][1] + sortedColors[2][1]);
+
+    const topNums = freq
+      .map((val, i) => ({ num: i, freq: val }))
+      .sort((a,b) => b.freq - a.freq)
+      .slice(0, 5)
+      .map(x => ({ number: x.num, probability: (x.freq / freq.reduce((a,b)=>a+b,0)).toFixed(2) }));
+
+    return { 
+      size, 
+      sizeConfidence: (sizeConfidence * 100).toFixed(1) + '%',
+      color, 
+      colorConfidence: (colorConfidence * 100).toFixed(1) + '%',
+      weightedAvg: weightedAvg.toFixed(2),
+      topNums 
+    };
+  }
+
+  // Timer (simple countdown for demo)
+  let countdown = 60;
+  function startTimer(seconds) {
+    clearInterval(timerInterval);
+    countdown = seconds;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(timerInterval);
+        loadDataAndPredict();
+      }
+      updateTimerDisplay();
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const mins = Math.floor(countdown / 60);
+    const secs = countdown % 60;
+    timeRemainingEl.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+  }
+
+  function resetTimer() {
+    clearInterval(timerInterval);
+    timeRemainingEl.textContent = '--:--';
+  }
+
+  // Background spiderweb effect canvas - subtle, desktop/mobile friendly
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  let points = [];
+
+  function initCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    points = [];
+    const gridX = 15;
+    const gridY = 10;
+
+    for(let x=0; x<=gridX; x++) {
+      for(let y=0; y<=gridY; y++) {
+        points.push({
+          x: (width / gridX) * x + (Math.random()*20-10),
+          y: (height / gridY) * y + (Math.random()*20-10),
+          originX: (width / gridX) * x,
+          originY: (height / gridY) * y,
+          vx: 0,
+          vy: 0
+        });
+      }
+    }
+  }
+
+  function animateCanvas() {
+    ctx.clearRect(0,0,width,height);
+    // Move points slightly
+    points.forEach(p => {
+      p.vx += (Math.random() - 0.5) * 0.1;
+      p.vy += (Math.random() - 0.5) * 0.1;
+      p.x += p.vx;
+      p.y += p.vy;
+      // Bounce back to origin softly
+      p.vx += (p.originX - p.x) * 0.01;
+      p.vy += (p.originY - p.y) * 0.01;
+    });
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+
+    // Draw lines between close points
+    for(let i=0; i<points.length; i++) {
+      for(let j=i+1; j<points.length; j++) {
+        const dx = points[i].x - points[j].x;
+        const dy = points[i].y - points[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 120) {
+          ctx.globalAlpha = 1 - dist/120;
+          ctx.beginPath();
+          ctx.moveTo(points[i].x, points[i].y);
+          ctx.lineTo(points[j].x, points[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    // Draw points
+    points.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(animateCanvas);
+  }
+
+  window.addEventListener('resize', () => {
+    initCanvas();
+  });
+
+  // Init and run
+  initCanvas();
+  animateCanvas();
+  loadDataAndPredict();
+
+})();
+</script>
 </body>
 </html>
